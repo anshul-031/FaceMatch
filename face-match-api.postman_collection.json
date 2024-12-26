@@ -1,0 +1,85 @@
+{
+  "info": {
+    "name": "Face Match API",
+    "description": "Collection for testing the Face Match API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Compare Faces",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/compare-faces",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "compare-faces"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"image1\": \"base64_encoded_image_1\",\n    \"image2\": \"base64_encoded_image_2\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Compare two face images and get similarity percentage"
+      },
+      "response": [
+        {
+          "name": "Successful Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/compare-faces"
+            }
+          },
+          "status": "200",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n    \"isMatch\": true,\n    \"matchPercentage\": 95\n}",
+          "_postman_previewlanguage": "json"
+        },
+        {
+          "name": "Error Response",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/compare-faces"
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n    \"error\": \"Both images are required\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
