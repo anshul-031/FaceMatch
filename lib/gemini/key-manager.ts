@@ -19,6 +19,10 @@ export class GeminiKeyManager {
 
   getNextKey(): string {
     const key = this.keys[this.currentIndex];
+    logger.info('Using Gemini API key', {
+      keyIndex: this.currentIndex,
+      totalKeys: this.keys.length
+    });
     this.currentIndex = (this.currentIndex + 1) % this.keys.length;
     return key;
   }
