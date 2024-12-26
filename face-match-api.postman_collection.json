@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Face Match API",
-    "description": "Collection for testing the Face Match API endpoints",
+    "description": "Collection for testing the Face Match API endpoints with detailed examples and validation",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -12,7 +12,8 @@
         "header": [
           {
             "key": "Content-Type",
-            "value": "application/json"
+            "value": "application/json",
+            "description": "Required header for JSON payload"
           }
         ],
         "url": {
@@ -29,14 +30,23 @@
             }
           }
         },
-        "description": "Compare two face images and get similarity percentage"
+        "description": "Compare two face images and get similarity percentage. Both images must be provided as base64 encoded strings."
       },
       "response": [
         {
           "name": "Successful Response",
           "originalRequest": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"image1\": \"base64_encoded_image_1\",\n    \"image2\": \"base64_encoded_image_2\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/compare-faces"
             }
@@ -53,10 +63,67 @@
           "_postman_previewlanguage": "json"
         },
         {
-          "name": "Error Response",
+          "name": "Invalid Method (405)",
+          "originalRequest": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/compare-faces"
+            }
+          },
+          "status": "405",
+          "code": 405,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Allow",
+              "value": "POST"
+            }
+          ],
+          "body": "{\n    \"error\": \"Method GET Not Allowed\"\n}",
+          "_postman_previewlanguage": "json"
+        },
+        {
+          "name": "Invalid Content-Type (415)",
           "originalRequest": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/compare-faces"
+            }
+          },
+          "status": "415",
+          "code": 415,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n    \"error\": \"Content-Type must be application/json\"\n}",
+          "_postman_previewlanguage": "json"
+        },
+        {
+          "name": "Missing Images (400)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"image1\": null,\n    \"image2\": null\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/api/compare-faces"
             }
