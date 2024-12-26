@@ -1,26 +1,17 @@
 import winston from 'winston';
+import { loggerConfig } from './config/logging';
+import { createConsoleTransport, createFileTransports } from './logger/transports';
+import { logFormat } from './logger/formats';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
+  ...loggerConfig,
+  format: logFormat,
   transports: [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-  ],
+    createConsoleTransport(),
+    ...(isProduction ? [] : createFileTransports())
+  ]
 });
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    })
-  );
-}
 
 export default logger;
