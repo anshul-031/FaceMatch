@@ -11,17 +11,17 @@ const rekognition = new RekognitionClient({
 
 export async function POST(request: NextRequest) {
   try {
-    const { sourceImage, targetImage } = await request.json();
+    const { image1, image2 } = await request.json();
 
-    if (!sourceImage || !targetImage) {
+    if (!image1 || !image2) {
       return NextResponse.json(
         { error: "Both images are required" },
         { status: 400 }
       );
     }
 
-    const sourceBuffer = Buffer.from(sourceImage, 'base64');
-    const targetBuffer = Buffer.from(targetImage, 'base64');
+    const sourceBuffer = Buffer.from(image1, 'base64');
+    const targetBuffer = Buffer.from(image2, 'base64');
 
     const command = new CompareFacesCommand({
       SourceImage: { Bytes: sourceBuffer },

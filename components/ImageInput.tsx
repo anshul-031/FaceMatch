@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 interface ImageInputProps {
   title: string;
   preview: string;
-  onImageSelect: (file: File) => void;
-  onImageCapture: (dataUrl: string) => void;
+  onImageSelect: (base64: string) => void;
+  onImageCapture: (base64: string) => void;
 }
 
 export function ImageInput({ title, preview, onImageSelect, onImageCapture }: ImageInputProps) {
@@ -20,12 +20,18 @@ export function ImageInput({ title, preview, onImageSelect, onImageCapture }: Im
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      onImageSelect(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        onImageSelect(base64String);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleWebcamCapture = (imageData: string) => {
-    onImageCapture(imageData);
+  const handleWebcamCapture = (dataUrl: string) => {
+    const base64String = dataUrl.split(',')[1];
+    onImageCapture(base64String);
     setIsWebcam(false);
   };
 
@@ -53,7 +59,7 @@ export function ImageInput({ title, preview, onImageSelect, onImageCapture }: Im
             <>
               {preview ? (
                 <img
-                  src={preview}
+                  src={`data:image/jpeg;base64,${preview}`}
                   alt={`${title} preview`}
                   className="max-h-48 mx-auto object-contain"
                 />

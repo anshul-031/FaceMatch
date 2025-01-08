@@ -7,10 +7,8 @@ import { Card } from "@/components/ui/card";
 import { ImageInput } from "@/components/ImageInput";
 
 export default function Home() {
-  const [sourceImage, setSourceImage] = useState<File | null>(null);
-  const [targetImage, setTargetImage] = useState<File | null>(null);
-  const [sourcePreview, setSourcePreview] = useState<string>("");
-  const [targetPreview, setTargetPreview] = useState<string>("");
+  const [sourceImage, setSourceImage] = useState<string>("");
+  const [targetImage, setTargetImage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
     match: boolean;
@@ -18,31 +16,11 @@ export default function Home() {
     message: string;
   } | null>(null);
 
-  const handleImageSelect = (file: File, type: "source" | "target") => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (type === "source") {
-        setSourceImage(file);
-        setSourcePreview(reader.result as string);
-      } else {
-        setTargetImage(file);
-        setTargetPreview(reader.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageCapture = async (dataUrl: string, type: "source" | "target") => {
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], `${type}-image.jpg`, { type: "image/jpeg" });
-
+  const handleImageSelect = (base64: string, type: "source" | "target") => {
     if (type === "source") {
-      setSourceImage(file);
-      setSourcePreview(dataUrl);
+      setSourceImage(base64);
     } else {
-      setTargetImage(file);
-      setTargetPreview(dataUrl);
+      setTargetImage(base64);
     }
   };
 
@@ -53,13 +31,15 @@ export default function Home() {
     setResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append("sourceImage", sourceImage);
-      formData.append("targetImage", targetImage);
-
-      const response = await fetch("/api/compare", {
+      const response = await fetch("/api/compare-faces", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image1: sourceImage,
+          image2: targetImage,
+        }),
       });
 
       const data = await response.json();
@@ -72,10 +52,8 @@ export default function Home() {
   };
 
   const reset = () => {
-    setSourceImage(null);
-    setTargetImage(null);
-    setSourcePreview("");
-    setTargetPreview("");
+    setSourceImage("");
+    setTargetImage("");
     setResult(null);
   };
 
@@ -94,15 +72,15 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <ImageInput
             title="First Image"
-            preview={sourcePreview}
-            onImageSelect={(file) => handleImageSelect(file, "source")}
-            onImageCapture={(dataUrl) => handleImageCapture(dataUrl, "source")}
+            preview={sourceImage}
+            onImageSelect={(base64) => handleImageSelect(base64, "source")}
+            onImageCapture={(base64) => handleImageSelect(base64, "source")}
           />
           <ImageInput
             title="Second Image"
-            preview={targetPreview}
-            onImageSelect={(file) => handleImageSelect(file, "target")}
-            onImageCapture={(dataUrl) => handleImageCapture(dataUrl, "target")}
+            preview={targetImage}
+            onImageSelect={(base64) => handleImageSelect(base64, "target")}
+            onImageCapture={(base64) => handleImageSelect(base64, "target")}
           />
         </div>
 
