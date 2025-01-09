@@ -11,6 +11,7 @@ interface WebcamCaptureProps {
 export function WebcamCapture({ onCapture }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   const startCamera = useCallback(async () => {
     try {
@@ -30,11 +31,16 @@ export function WebcamCapture({ onCapture }: WebcamCaptureProps) {
       tracks.forEach(track => track.stop());
       videoRef.current.srcObject = null;
       setIsStreaming(false);
+      setIsVideoReady(false);
     }
   }, []);
 
+  const handleVideoReady = () => {
+    setIsVideoReady(true);
+  };
+
   const captureImage = useCallback(() => {
-    if (videoRef.current) {
+    if (videoRef.current && isVideoReady) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
@@ -46,7 +52,7 @@ export function WebcamCapture({ onCapture }: WebcamCaptureProps) {
         stopCamera();
       }
     }
-  }, [onCapture, stopCamera]);
+  }, [onCapture, stopCamera, isVideoReady]);
 
   return (
     <div className="space-y-4">
@@ -55,6 +61,7 @@ export function WebcamCapture({ onCapture }: WebcamCaptureProps) {
           ref={videoRef}
           autoPlay
           playsInline
+          onLoadedData={handleVideoReady}
           className="w-full h-full object-cover"
         />
       </div>
@@ -66,9 +73,13 @@ export function WebcamCapture({ onCapture }: WebcamCaptureProps) {
           </Button>
         ) : (
           <>
-            <Button onClick={captureImage} variant="default">
+            <Button 
+              onClick={captureImage} 
+              variant="default"
+              disabled={!isVideoReady}
+            >
               <Camera className="mr-2 h-4 w-4" />
-              Capture
+              {isVideoReady ? 'Capture' : 'Loading...'}
             </Button>
             <Button onClick={stopCamera} variant="outline">
               <StopCircle className="mr-2 h-4 w-4" />

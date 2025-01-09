@@ -1,55 +1,64 @@
-import { RekognitionClient, CompareFacesCommand } from "@aws-sdk/client-rekognition";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { compareFaces } from '@/lib/rekognition';
+import logger from '@/lib/logger';
+import { ApiError } from '@/lib/error-utils';
+import { validateMethod } from '@/lib/api/middleware';
+import { validateFaceComparisonRequest } from '@/lib/api/validation';
 
-const rekognition = new RekognitionClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
-});
+export const dynamic = 'force-dynamic';
+
+const ALLOWED_METHODS = ['POST'];
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID();
+  
   try {
-    const { image1, image2 } = await request.json();
+    logger.info('Received API request', {
+      requestId,
+      method: request.method,
+      url: request.url,
+      path: new URL(request.url).pathname
+    });
 
-    if (!image1 || !image2) {
+    const methodValidation = validateMethod(request, ALLOWED_METHODS);
+    if (methodValidation) return methodValidation;
+
+    const contentType = request.headers.get('content-type');
+    logger.info('Request content type', { requestId, contentType });
+
+    if (!contentType?.includes('application/json')) {
+      logger.warn('Invalid content type', { requestId, contentType });
       return NextResponse.json(
-        { error: "Both images are required" },
-        { status: 400 }
+        { error: 'Content-Type must be application/json' },
+        { status: 415 }
       );
     }
 
-    const sourceBuffer = Buffer.from(image1, 'base64');
-    const targetBuffer = Buffer.from(image2, 'base64');
+    const data = await request.json();
+    validateFaceComparisonRequest(data);
 
-    const command = new CompareFacesCommand({
-      SourceImage: { Bytes: sourceBuffer },
-      TargetImage: { Bytes: targetBuffer },
-      SimilarityThreshold: 90,
+    logger.info('Processing face comparison', { requestId });
+    const result = await compareFaces(data.image1, data.image2);
+    
+    logger.info('Face comparison completed', { requestId, success: true });
+    return NextResponse.json(result);
+  } catch (error) {
+    logger.error('Error in face comparison API', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error instanceof Error ? error.constructor.name : typeof error
     });
-
-    const response = await rekognition.send(command);
-
-    if (!response.FaceMatches || response.FaceMatches.length === 0) {
-      return NextResponse.json({
-        match: false,
-        confidence: 0,
-        message: "No face matches found",
-      });
+    
+    if (error instanceof ApiError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
     }
 
-    const confidence = response.FaceMatches[0].Similarity || 0;
-
-    return NextResponse.json({
-      match: confidence > 90,
-      confidence,
-      message: confidence > 90 ? "Same person detected" : "Different persons detected",
-    });
-  } catch (error) {
-    console.error("Error comparing faces:", error);
     return NextResponse.json(
-      { error: "Error processing face comparison" },
+      { error: 'Failed to process face comparison. Please try again.' },
       { status: 500 }
     );
   }

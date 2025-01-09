@@ -1,6 +1,6 @@
 # Face Match API
 
-A Next.js application that uses Google's Gemini 1.5 Flash model to compare faces in images and determine if they belong to the same person.
+A Next.js application that uses AWS Rekognition to compare faces in images and determine if they belong to the same person.
 
 ## Setup
 
@@ -9,7 +9,10 @@ A Next.js application that uses Google's Gemini 1.5 Flash model to compare faces
    ```bash
    cp .env.example .env
    ```
-3. Add your Gemini API keys to `.env`
+3. Add your AWS credentials to `.env`:
+   - AWS_ACCESS_KEY_ID
+   - AWS_SECRET_ACCESS_KEY
+   - AWS_REGION
 4. Install dependencies:
    ```bash
    npm install
@@ -56,7 +59,9 @@ Import the `face-match-api.postman_collection.json` into Postman to test the API
 
 ## Environment Variables
 
-- `GEMINI_API_KEYS`: Comma-separated list of Gemini API keys for key rotation
+- `AWS_ACCESS_KEY_ID`: Your AWS access key ID
+- `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
+- `AWS_REGION`: AWS region (e.g., us-east-1)
 - `PORT`: Server port (default: 3000)
 - `NODE_ENV`: Environment mode (development/production)
 - `LOG_LEVEL`: Logging level (default: info)
